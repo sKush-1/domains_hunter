@@ -1,26 +1,66 @@
 import { Request, Response } from "express";
 import pool from "../config/database/db.config";
+import { generateDomains, extractDomains, checkDomainAvailability } from "../services/domainSuggestionService";
 
 export async function generateSuggestions(req: Request, res: Response) {
     const ip = req.userIp;
     const deviceId = req.deviceId;
+    const promptId = req.params.id;
+    const userPrompt = req.query.prompt as string || '';
   
-    console.log("Request from IP:", ip, "Device ID:", deviceId);
+    console.log("Request from IP:", ip, "Device ID:", deviceId, "Prompt ID:", promptId);
   
     try {
-        const client = await pool.connect();
-        // Simple query to test database connection
-        const result = await client.query('SELECT NOW() as now');
-        client.release();
+        // Generate domain suggestions using DeepSeek API
+        const aiResponse = await generateDomains(userPrompt);
+        console.log("AI Response:", aiResponse);
         
-        res.json({ 
-            result: "Domain suggestions here!",
-            dbTest: result.rows[0].now
-        });
+        // Extract domains from the response
+        const suggestedDomains = extractDomains(aiResponse);
+        console.log("Extracted Domains:", suggestedDomains);
+        
+        // Check domain availability using GoDaddy API
+        const availableDomains = await checkDomainAvailability(suggestedDomains);
+        console.log("Available Domains:", availableDomains);
+        
+        // Create response with availability flags
+        const domainsWithFlags = suggestedDomains.map(domain => ({
+            domain: domain,
+            flag: availableDomains.includes(domain) ? 1 : 0
+        }));
+        
+        // Save to database
+        const client = await pool.connect();
+        try {
+            // Insert the prompt and results into the database
+            const insertResult = await client.query(
+                `INSERT INTO suggested_domains 
+                (prompt_id, content, ip_address, device_id, prompt_result, domains_result) 
+                VALUES ($1, $2, $3, $4, $5, $6) 
+                RETURNING id`,
+                [promptId, userPrompt, ip, deviceId, aiResponse, JSON.stringify(domainsWithFlags)]
+            );
+            
+            const recordId = insertResult.rows[0].id;
+            console.log("Saved to database with ID:", recordId);
+            
+            client.release();
+            
+            // Return the results
+            res.json({ 
+                id: recordId,
+                promptId: promptId,
+                userPrompt: userPrompt,
+                suggestedDomains: domainsWithFlags
+            });
+        } catch (dbError) {
+            client.release();
+            throw dbError;
+        }
     } catch (error) {
-        console.error("Database connection error:", error);
+        console.error("Error in generateSuggestions:", error);
         res.status(500).json({ 
-            error: "Failed to connect to database",
+            error: "Failed to generate domain suggestions",
             message: error instanceof Error ? error.message : "Unknown error"
         });
     }

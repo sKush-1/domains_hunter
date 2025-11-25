@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "migrate": "node-pg-migrate -m src/config/database/migrations up",
     "migrate:create": "node-pg-migrate -m src/config/database/migrations create",
-    "test:table": "node src/config/database/test-table.js"
+    "test:table": "node src/config/database/test-table.js",
+    "test:service": "ts-node src/services/testDomainService.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,7 @@
   "packageManager": "pnpm@10.23.0",
   "dependencies": {
     "@types/pg": "^8.15.6",
+    "axios": "^1.7.9",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",

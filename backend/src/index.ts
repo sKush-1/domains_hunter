@@ -10,17 +10,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(clientInfoMiddleware);
-
-
-
 app.use("/api/v1", domainsRouter);
 
-app.get("api/v1/health", (_req, res) => {
+app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
 // Test database connection endpoint
-app.get("/api/v1/test-db", async (_req, res) => {
+app.get("/test-db", async (_req, res) => {
   const isConnected = await testConnection();
   if (isConnected) {
     res.json({ status: "Database connected successfully!" });
