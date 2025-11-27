@@ -6,12 +6,13 @@ import {
   checkDomainAvailability,
 } from "../services/domainSuggestionService";
 import { sendResponse } from "../utils/sendresponse.util";
+import { Client } from "pg";
 
 export async function generateSuggestions(req: Request, res: Response) {
   const ip = req.userIp;
   const deviceId = req.deviceId;
   const promptId = req.params.id;
-  const userPrompt = (req.query.prompt as string) || "";
+  const userPrompt = (req.body.prompt as string) || "";
 
   console.log(
     "Request from IP:",
@@ -25,15 +26,15 @@ export async function generateSuggestions(req: Request, res: Response) {
   try {
     // Generate domain suggestions using DeepSeek API
     const aiResponse = await generateDomains(userPrompt);
-    console.log("AI Response:", aiResponse);
+    // console.log("AI Response:", aiResponse);
 
     // Extract domains from the response
     const suggestedDomains = extractDomains(aiResponse);
-    console.log("Extracted Domains:", suggestedDomains);
+    // console.log("Extracted Domains:", suggestedDomains);
 
     // Check domain availability using GoDaddy API
     const availableDomains = await checkDomainAvailability(suggestedDomains);
-    console.log("Available Domains:", availableDomains);
+    // console.log("Available Domains:", availableDomains);
 
     // Create response with availability flags
     const domainsWithFlags = suggestedDomains.map((domain) => ({
@@ -66,12 +67,14 @@ export async function generateSuggestions(req: Request, res: Response) {
       client.release();
 
       // Return the results
-      res.json({
+      const result = {
         id: recordId,
         promptId: promptId,
         userPrompt: userPrompt,
         suggestedDomains: domainsWithFlags,
-      });
+      };
+
+      sendResponse(res, 200, "Fetched domains result", result);
     } catch (dbError) {
       client.release();
       throw dbError;
@@ -86,10 +89,25 @@ export async function generateSuggestions(req: Request, res: Response) {
 }
 
 export async function rateDomains(req: Request, res: Response) {
-  console.log(req.body);
+  try {
+    const domainsRatings = req.body.domainsRatings;
 
-  const result = {
-    result: "got it",
-  };
-  sendResponse(res, 200, "OK", result);
+    const rows = Object.entries(domainsRatings)
+      .map(([domain, rating]) => `('${domain}', ${rating})`)
+      .join(", ");
+
+    const client = await pool.connect();
+
+    const query = `INSERT INTO domains_ratings(domain, rating) VALUES ${rows}`;
+
+    const insertResult = await client.query(query);
+
+    const result = {
+      result: insertResult.rows[0].id,
+    };
+    sendResponse(res, 200, "OK", result);
+  } catch (error) {
+    console.log(error);
+    sendResponse(res, 500, "Internal server error");
+  }
 }
