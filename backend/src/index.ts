@@ -3,6 +3,8 @@ import cors from "cors";
 import "dotenv/config";
 import { clientInfoMiddleware } from "./midllewares/clientInfo";
 import domainsRouter from "./routes/domains.routes";
+import usersRouter from "./routes/users.routes";
+
 import { testConnection } from "./config/database/db.test";
 
 const app = express();
@@ -11,6 +13,8 @@ app.use(cors());
 app.use(express.json());
 app.use(clientInfoMiddleware);
 app.use("/api/v1/domains", domainsRouter);
+app.use("/api/v1/users", usersRouter);
+
 
 app.get("/api/v1/health", (_req, res) => {
   res.json({ status: "ok" });

@@ -15,11 +15,12 @@ export function validateSuggestionReq(data: any) {
 }
 
 export function validateDomainsRatingReq(data: any) {
+
+
   const { domain: name, rating } = data.domainRating;
   if (!name || name.length > 150) {
     return {
       error: "domain name should not exceed 150 characters",
-      status: 400,
     };
   } else if (rating < 1 || rating > 10) {
     return { error: "rating should be between 1 to 10" };
@@ -45,7 +46,7 @@ export function validateRegisterWithEmail(data: any) {
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters long"}
   }
-  
+
   if (password.length > 30) {
     return { error: "Password must not exceed 100 characters"};
   }
