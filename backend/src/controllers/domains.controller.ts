@@ -4,10 +4,13 @@ import {
   generateDomains,
   extractDomains,
   checkDomainAvailability,
-} from "../services/domainSuggestionService";
+} from "../services/domainSuggestion.service";
 import { sendResponse } from "../utils/sendresponse.util";
 import { Client } from "pg";
-import { validateSuggestionReq } from "../utils/schemaValidation";
+import {
+  validateDomainsRatingReq,
+  validateSuggestionReq,
+} from "../utils/schemaValidation";
 
 export async function generateSuggestions(req: Request, res: Response) {
   const promptId = req.params.id;
@@ -16,7 +19,10 @@ export async function generateSuggestions(req: Request, res: Response) {
   // console.log("Request from IP:", "Device ID:", "Prompt ID:", promptId);
 
   // schema validation
-  validateSuggestionReq(req, res);
+  const validationResult = validateSuggestionReq(req.body);
+  if (validationResult.error) {
+    return sendResponse(res, 400, validationResult.error);
+  }
 
   try {
     // Generate domain suggestions using DeepSeek API
@@ -75,8 +81,14 @@ export async function generateSuggestions(req: Request, res: Response) {
 
 export async function rateDomains(req: Request, res: Response) {
   try {
-    const { domain: name, rating } = req.body.domainRating;
-    console.log(name);
+    const { domain, rating } = req.body.domainRating;
+
+    // schemaValidation
+    const valdiationResult = validateDomainsRatingReq(req.body);
+
+    if (valdiationResult.error) {
+      return sendResponse(res, 400, valdiationResult.error);
+    }
 
     const client = await pool.connect();
 
