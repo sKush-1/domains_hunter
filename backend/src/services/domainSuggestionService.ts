@@ -88,8 +88,8 @@ export function extractDomains(response: string): string[] {
   const pattern = /\d+\.\s*(\S+)/g;
   
   // Extract domain names using regex
-  const matches = [];
-  let match;
+  const matches: string[] = [];
+  let match: RegExpExecArray | null;
   while ((match = pattern.exec(response)) !== null) {
     matches.push(match[1]);
   }

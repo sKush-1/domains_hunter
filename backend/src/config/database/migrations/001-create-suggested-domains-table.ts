@@ -1,8 +1,9 @@
 /* eslint-disable camelcase */
+import type { MigrationBuilder } from "node-pg-migrate";
 
-exports.shorthands = undefined;
+export const shorthands = undefined;
 
-exports.up = (pgm) => {
+export async function up(pgm: MigrationBuilder): Promise<void> {
   // Create the suggested_domains table
   pgm.createTable("suggested_domains", {
     id: {
@@ -46,9 +47,9 @@ exports.up = (pgm) => {
     name: "idx_ip_address",
   });
   pgm.createIndex("suggested_domains", "device_id", { name: "idx_device_id" });
-};
+}
 
-exports.down = (pgm) => {
+export async function down(pgm: MigrationBuilder): Promise<void> {
   // Drop indexes
   pgm.dropIndex("suggested_domains", "prompt_id", { name: "idx_prompt_id" });
   pgm.dropIndex("suggested_domains", "ip_address", { name: "idx_ip_address" });
@@ -56,4 +57,4 @@ exports.down = (pgm) => {
 
   // Drop table
   pgm.dropTable("suggested_domains");
-};
+}

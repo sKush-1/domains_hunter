@@ -7,21 +7,16 @@ import {
 } from "../services/domainSuggestionService";
 import { sendResponse } from "../utils/sendresponse.util";
 import { Client } from "pg";
+import { validateSuggestionReq } from "../utils/schemaValidation";
 
 export async function generateSuggestions(req: Request, res: Response) {
-  const ip = req.userIp;
-  const deviceId = req.deviceId;
   const promptId = req.params.id;
   const userPrompt = (req.body.prompt as string) || "";
 
-  console.log(
-    "Request from IP:",
-    ip,
-    "Device ID:",
-    deviceId,
-    "Prompt ID:",
-    promptId,
-  );
+  // console.log("Request from IP:", "Device ID:", "Prompt ID:", promptId);
+
+  // schema validation
+  validateSuggestionReq(req, res);
 
   try {
     // Generate domain suggestions using DeepSeek API
@@ -51,14 +46,7 @@ export async function generateSuggestions(req: Request, res: Response) {
                 (prompt_id, content, ip_address, device_id, prompt_result, domains_result)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 RETURNING id`,
-        [
-          promptId,
-          userPrompt,
-          ip,
-          deviceId,
-          aiResponse,
-          JSON.stringify(domainsWithFlags),
-        ],
+        [promptId, userPrompt, JSON.stringify(domainsWithFlags)],
       );
 
       const recordId = insertResult.rows[0].id;
@@ -74,36 +62,34 @@ export async function generateSuggestions(req: Request, res: Response) {
         suggestedDomains: domainsWithFlags,
       };
 
-      sendResponse(res, 200, "Fetched domains result", result);
+      return sendResponse(res, 200, "Fetched domains result", result);
     } catch (dbError) {
       client.release();
       throw dbError;
     }
   } catch (error) {
     console.error("Error in generateSuggestions:", error);
-    res.status(500).json({
-      error: "Failed to generate domain suggestions",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    return sendResponse(res, 500, "Failed to generate suggestions");
   }
 }
 
 export async function rateDomains(req: Request, res: Response) {
   try {
-    const domainsRatings = req.body.domainsRatings;
-
-    const rows = Object.entries(domainsRatings)
-      .map(([domain, rating]) => `('${domain}', ${rating})`)
-      .join(", ");
+    const { domain: name, rating } = req.body.domainRating;
+    console.log(name);
 
     const client = await pool.connect();
 
-    const query = `INSERT INTO domains_ratings(domain, rating) VALUES ${rows}`;
-
-    const insertResult = await client.query(query);
+    const insertResult = await client.query(
+      `INSERT INTO domains
+              (name,rating)
+              VALUES ($1, $2)
+              RETURNING id`,
+      [name, rating],
+    );
 
     const result = {
-      result: insertResult.rows[0].id,
+      result: { insertID: insertResult.rows[0].id },
     };
     sendResponse(res, 200, "OK", result);
   } catch (error) {
