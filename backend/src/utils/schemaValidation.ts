@@ -1,6 +1,3 @@
-import { Request, Response } from "express";
-import { sendResponse } from "./sendresponse.util";
-
 export function validateSuggestionReq(data: any) {
   const { prompt } = data;
   if (!prompt) {
