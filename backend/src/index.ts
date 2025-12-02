@@ -4,6 +4,7 @@ import "dotenv/config";
 import { clientInfoMiddleware } from "./midllewares/clientInfo";
 import domainsRouter from "./routes/domains.routes";
 import usersRouter from "./routes/users.routes";
+import authRouter from "./routes/auth.routes";
 
 import { testConnection } from "./config/database/db.test";
 
@@ -14,7 +15,7 @@ app.use(express.json());
 app.use(clientInfoMiddleware);
 app.use("/api/v1/domains", domainsRouter);
 app.use("/api/v1/users", usersRouter);
-
+app.use("/api/v1/auth", authRouter);
 
 app.get("/api/v1/health", (_req, res) => {
   res.json({ status: "ok" });

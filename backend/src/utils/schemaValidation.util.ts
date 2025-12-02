@@ -12,8 +12,6 @@ export function validateSuggestionReq(data: any) {
 }
 
 export function validateDomainsRatingReq(data: any) {
-
-
   const { domain: name, rating } = data.domainRating;
   if (!name || name.length > 150) {
     return {
@@ -27,25 +25,39 @@ export function validateDomainsRatingReq(data: any) {
 
 export function validateRegisterWithEmail(data: any) {
   const { email, password } = data;
-   if (email.length > 150) {
+  if (email.length > 150) {
     return { error: "Email must not exceed 150 characters", status: 400 };
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return { error: "Invalid email format"};
+    return { error: "Invalid email format" };
   }
 
   if (!password || typeof password !== "string") {
-    return { error: "Password is required"};
+    return { error: "Password is required" };
   }
 
   if (password.length < 8) {
-    return { error: "Password must be at least 8 characters long"}
+    return { error: "Password must be at least 8 characters long" };
   }
 
   if (password.length > 30) {
-    return { error: "Password must not exceed 100 characters"};
+    return { error: "Password must not exceed 100 characters" };
+  }
+
+  return { valid: true };
+}
+
+export function validateEmailVerification(data: any) {
+  const { email } = data;
+  if (email.length > 150) {
+    return { error: "Email must not exceed 150 characters", status: 400 };
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { error: "Invalid email format" };
   }
 
   return { valid: true };
