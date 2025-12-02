@@ -14,14 +14,23 @@ export async function emailVerificationRequest(req: Request, res: Response) {
     if (validationResult.error)
       return sendResponse(res, 400, "email validation failed");
 
+    const requests = await redis.incr(`verify:${email}:count`);
+    if (requests === 1) await redis.expire(`verify:${email}:count`, 120);
+
+    if (requests > 5) {
+      return res
+        .status(429)
+        .json({ message: "Too many requests for this email. Try later." });
+    }
+
     const token = generateTokenCode();
 
     const key = `verify:${email}`;
     await redis.set(key, JSON.stringify({ email, token }), "EX", 86400); // 24 hrs
 
     const result = {
+      message: "we have sent token to users email inbox/spam check it",
       email,
-      token,
     };
     return sendResponse(res, 200, "Sent email verification request.", result);
   } catch (error) {
