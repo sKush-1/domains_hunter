@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { validateRegisterWithEmail } from "../utils/schemaValidation";
+import { validateRegisterWithEmail } from "../utils/schemaValidation.util";
 import { sendResponse } from "../utils/sendresponse.util";
 import { error } from "console";
 
@@ -11,8 +11,6 @@ export function registerWithEmail(req: Request, res: Response) {
   if (validationResult.error) {
     return sendResponse(res, 400, validationResult.error);
   }
-
-  
 
   return sendResponse(res, 200, "success", validationResult);
 }

@@ -74,105 +74,41 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   // -------------------------------------
   // SESSIONS TABLE (Refresh Tokens)
   // -------------------------------------
-  pgm.createTable("sessions", {
-    id: "id",
-    user_id: {
-      type: "BIGINT",
-      references: "users",
-      notNull: true,
-      onDelete: "CASCADE",
-    },
-    refresh_token: {
-      type: "TEXT",
-      notNull: true,
-      unique: true,
-    },
-    user_agent: {
-      type: "TEXT",
-    },
-    ip_address: {
-      type: "VARCHAR(45)",
-    },
-    expires_at: {
-      type: "TIMESTAMPTZ",
-      notNull: true,
-    },
-    created_at: {
-      type: "TIMESTAMPTZ",
-      default: pgm.func("CURRENT_TIMESTAMP"),
-    },
-  });
+    pgm.createTable("sessions", {
+      id: "id",
+      user_id: {
+        type: "BIGINT",
+        references: "users",
+        notNull: true,
+        onDelete: "CASCADE",
+      },
+      refresh_token: {
+        type: "TEXT",
+        notNull: true,
+        unique: true,
+      },
+      user_agent: {
+        type: "TEXT",
+      },
+      ip_address: {
+        type: "VARCHAR(45)",
+      },
+      expires_at: {
+        type: "TIMESTAMPTZ",
+        notNull: true,
+      },
+      created_at: {
+        type: "TIMESTAMPTZ",
+        default: pgm.func("CURRENT_TIMESTAMP"),
+      },
+    });
 
-  pgm.createIndex("sessions", "user_id");
-
-  // -------------------------------------
-  // PASSWORD RESET TOKENS
-  // -------------------------------------
-  pgm.createTable("password_reset_tokens", {
-    id: "id",
-    user_id: {
-      type: "BIGINT",
-      references: "users",
-      notNull: true,
-      onDelete: "CASCADE",
-    },
-    token: {
-      type: "TEXT",
-      notNull: true,
-      unique: true,
-    },
-    expires_at: {
-      type: "TIMESTAMPTZ",
-      notNull: true,
-    },
-    used: {
-      type: "BOOLEAN",
-      default: false,
-    },
-    created_at: {
-      type: "TIMESTAMPTZ",
-      default: pgm.func("CURRENT_TIMESTAMP"),
-    },
-  });
-
-  pgm.createIndex("password_reset_tokens", "user_id");
+    pgm.createIndex("sessions", "user_id");
 
   // -------------------------------------
-  // EMAIL VERIFICATION TOKENS
-  // -------------------------------------
-  pgm.createTable("email_verification_tokens", {
-    id: "id",
-    user_id: {
-      type: "BIGINT",
-      references: "users",
-      notNull: true,
-      onDelete: "CASCADE",
-    },
-    token: {
-      type: "TEXT",
-      notNull: true,
-      unique: true,
-    },
-    expires_at: {
-      type: "TIMESTAMPTZ",
-      notNull: true,
-    },
-    used: {
-      type: "BOOLEAN",
-      default: false,
-    },
-    created_at: {
-      type: "TIMESTAMPTZ",
-      default: pgm.func("CURRENT_TIMESTAMP"),
-    },
-  });
-
-  pgm.createIndex("email_verification_tokens", "user_id");
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-  pgm.dropTable("email_verification_tokens");
-  pgm.dropTable("password_reset_tokens");
   pgm.dropTable("sessions");
   pgm.dropConstraint("auth_providers", "unique_provider_per_user");
   pgm.dropTable("auth_providers");

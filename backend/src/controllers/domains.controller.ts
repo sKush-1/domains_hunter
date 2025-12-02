@@ -10,14 +10,13 @@ import { Client } from "pg";
 import {
   validateDomainsRatingReq,
   validateSuggestionReq,
-} from "../utils/schemaValidation";
+} from "../utils/schemaValidation.util";
 
 export async function generateSuggestions(req: Request, res: Response) {
   const ip = req.userIp;
   const deviceId = req.deviceId;
   const promptId = req.params.id;
   const userPrompt = (req.body.prompt as string) || "";
-
 
   // console.log("Request from IP:", "Device ID:", "Prompt ID:", promptId);
 
@@ -55,7 +54,14 @@ export async function generateSuggestions(req: Request, res: Response) {
                 (prompt_id, content, ip_address, device_id, prompt_result, domains_result)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 RETURNING id`,
-        [promptId, userPrompt,ip,deviceId,aiResponse, JSON.stringify(domainsWithFlags)],
+        [
+          promptId,
+          userPrompt,
+          ip,
+          deviceId,
+          aiResponse,
+          JSON.stringify(domainsWithFlags),
+        ],
       );
 
       const recordId = insertResult.rows[0].id;
