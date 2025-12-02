@@ -5,6 +5,7 @@ import { Client } from "pg";
 import { validateEmailVerification } from "../utils/schemaValidation.util";
 import { generateTokenCode } from "../utils/generateOtp.util";
 import redis from "../config/database/redis";
+import { sendVerificationEmail } from "../services/sendEmail.service";
 
 export async function emailVerificationRequest(req: Request, res: Response) {
   const { email } = req.body;
@@ -26,12 +27,16 @@ export async function emailVerificationRequest(req: Request, res: Response) {
     const token = generateTokenCode();
 
     const key = `verify:${email}`;
-    await redis.set(key, JSON.stringify({ email, token }), "EX", 86400); // 24 hrs
+    await Promise.all([
+      redis.set(key, JSON.stringify({ email, token }), "EX", 86400),
+      sendVerificationEmail(email, token),
+    ]);
 
     const result = {
       message: "we have sent token to users email inbox/spam check it",
       email,
     };
+
     return sendResponse(res, 200, "Sent email verification request.", result);
   } catch (error) {
     console.error("Error in generateSuggestions:", error);

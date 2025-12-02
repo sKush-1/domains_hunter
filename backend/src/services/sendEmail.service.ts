@@ -1,6 +1,6 @@
-import transporter from "../utils/nodemailerTransporter.util";
+import { transporter } from "../utils/nodemailerTransporter.util";
 
-export async function sendVerificationEmail(to, token) {
+export async function sendVerificationEmail(to: string, token: string) {
   const mailOptions = {
     from: `"Domain Hunter" <${process.env.EMAIL_USER}>`,
     to,
