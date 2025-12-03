@@ -77,7 +77,7 @@ export async function verifyUserEmail(req: Request, res: Response) {
     const requests = await redis.incr(`user:verified:${email}:count`);
     if (requests === 1) await redis.expire(`user:verified:${email}:count`, 120);
 
-    if (requests > 5) {
+    if (requests > 3) {
       return res
         .status(429)
         .json({ message: "Too many requests for this email. Try later." });

@@ -68,42 +68,42 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   pgm.addConstraint(
     "auth_providers",
     "unique_provider_per_user",
-    "UNIQUE(user_id, provider)"
+    "UNIQUE(user_id, provider)",
   );
 
   // -------------------------------------
   // SESSIONS TABLE (Refresh Tokens)
   // -------------------------------------
-    pgm.createTable("sessions", {
-      id: "id",
-      user_id: {
-        type: "BIGINT",
-        references: "users",
-        notNull: true,
-        onDelete: "CASCADE",
-      },
-      refresh_token: {
-        type: "TEXT",
-        notNull: true,
-        unique: true,
-      },
-      user_agent: {
-        type: "TEXT",
-      },
-      ip_address: {
-        type: "VARCHAR(45)",
-      },
-      expires_at: {
-        type: "TIMESTAMPTZ",
-        notNull: true,
-      },
-      created_at: {
-        type: "TIMESTAMPTZ",
-        default: pgm.func("CURRENT_TIMESTAMP"),
-      },
-    });
+  pgm.createTable("sessions", {
+    id: "id",
+    user_id: {
+      type: "BIGINT",
+      references: "users",
+      notNull: true,
+      onDelete: "CASCADE",
+    },
+    refresh_token: {
+      type: "TEXT",
+      notNull: true,
+      unique: true,
+    },
+    user_agent: {
+      type: "TEXT",
+    },
+    ip_address: {
+      type: "VARCHAR(45)",
+    },
+    expires_at: {
+      type: "TIMESTAMPTZ",
+      notNull: true,
+    },
+    created_at: {
+      type: "TIMESTAMPTZ",
+      default: pgm.func("CURRENT_TIMESTAMP"),
+    },
+  });
 
-    pgm.createIndex("sessions", "user_id");
+  pgm.createIndex("sessions", "user_id");
 
   // -------------------------------------
 }
