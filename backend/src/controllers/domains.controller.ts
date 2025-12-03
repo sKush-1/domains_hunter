@@ -23,7 +23,7 @@ export async function generateSuggestions(req: Request, res: Response) {
   // schema validation
   const validationResult = validateSuggestionReq(req.body);
   if (validationResult.error) {
-    return sendResponse(res, 400, validationResult.error);
+    return sendResponse(res, 400, true, validationResult.error);
   }
 
   try {
@@ -77,14 +77,14 @@ export async function generateSuggestions(req: Request, res: Response) {
         suggestedDomains: domainsWithFlags,
       };
 
-      return sendResponse(res, 200, "Fetched domains result", result);
+      return sendResponse(res, 200, false, "Fetched domains result", result);
     } catch (dbError) {
       client.release();
       throw dbError;
     }
   } catch (error) {
     console.error("Error in generateSuggestions:", error);
-    return sendResponse(res, 500, "Failed to generate suggestions");
+    return sendResponse(res, 500, true, "Failed to generate suggestions");
   }
 }
 
@@ -96,7 +96,7 @@ export async function rateDomains(req: Request, res: Response) {
     const valdiationResult = validateDomainsRatingReq(req.body);
 
     if (valdiationResult.error) {
-      return sendResponse(res, 400, valdiationResult.error);
+      return sendResponse(res, 400, true, valdiationResult.error);
     }
 
     const client = await pool.connect();
@@ -112,9 +112,9 @@ export async function rateDomains(req: Request, res: Response) {
     const result = {
       result: { insertID: insertResult.rows[0].id },
     };
-    sendResponse(res, 200, "OK", result);
+    sendResponse(res, 200, false, "OK", result);
   } catch (error) {
     console.log(error);
-    sendResponse(res, 500, "Internal server error");
+    sendResponse(res, 500, true, "Internal server error");
   }
 }

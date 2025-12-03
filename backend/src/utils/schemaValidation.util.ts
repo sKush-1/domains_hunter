@@ -62,3 +62,21 @@ export function validateEmailVerification(data: any) {
 
   return { valid: true };
 }
+
+export function validateTokenVerification(data: any) {
+  const { email, token } = data;
+  if (email.length > 150) {
+    return { error: "Email must not exceed 150 characters", status: 400 };
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { error: "Invalid email format" };
+  }
+
+  if (token.length != 6) {
+    return { error: "verification token must be length 6", status: 400 };
+  }
+
+  return { valid: true };
+}
