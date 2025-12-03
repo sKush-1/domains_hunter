@@ -9,8 +9,8 @@ export function registerWithEmail(req: Request, res: Response) {
   const validationResult = validateRegisterWithEmail(req.body);
 
   if (validationResult.error) {
-    return sendResponse(res, 400, validationResult.error);
+    return sendResponse(res, 400, true, validationResult.error);
   }
 
-  return sendResponse(res, 200, "success", validationResult);
+  return sendResponse(res, 200, false, "success", validationResult);
 }
