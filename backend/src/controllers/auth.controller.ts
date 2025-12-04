@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { json, Request, Response } from "express";
 import pool from "../config/database/db.config";
 import { sendResponse } from "../utils/sendresponse.util";
 import { Client } from "pg";
@@ -6,6 +6,11 @@ import { validateEmailVerification } from "../utils/schemaValidation.util";
 import { generateTokenCode } from "../utils/generateOtp.util";
 import redis from "../config/database/redis";
 import { sendVerificationEmail } from "../services/sendEmail.service";
+
+interface TokenData {
+  email: string;
+  token: string;
+}
 
 export async function emailVerificationRequest(req: Request, res: Response) {
   const { email } = req.body;
@@ -18,15 +23,6 @@ export async function emailVerificationRequest(req: Request, res: Response) {
     const alreadyVerified = await redis.get(`user:verified:${email}`);
     if (alreadyVerified === "true") {
       return sendResponse(res, 200, true, "Email is already verified.");
-    }
-
-    const requests = await redis.incr(`verify:${email}:count`);
-    if (requests === 1) await redis.expire(`verify:${email}:count`, 120);
-
-    if (requests > 5) {
-      return res
-        .status(429)
-        .json({ message: "Too many requests for this email. Try later." });
     }
 
     const token = generateTokenCode();
@@ -70,17 +66,34 @@ export async function verifyUserEmail(req: Request, res: Response) {
       return sendResponse(res, 400, true, validationResult.error);
 
     const alreadyVerified = await redis.get(`user:verified:${email}`);
-    if (alreadyVerified === "true") {
-      return sendResponse(res, 200, true, "Email is already verified.");
+
+    if (alreadyVerified) {
+      return sendResponse(res, 400, true, "Email is already verified.");
     }
 
-    const requests = await redis.incr(`user:verified:${email}:count`);
-    if (requests === 1) await redis.expire(`user:verified:${email}:count`, 120);
+    const tokenKey = `verify:${email}`;
 
-    if (requests > 3) {
-      return res
-        .status(429)
-        .json({ message: "Too many requests for this email. Try later." });
+    const tokendData = await redis.get(tokenKey);
+
+    if (!tokendData) {
+      return sendResponse(
+        res,
+        401,
+        true,
+        "Token not found or expired. Please request a new verification email.",
+      );
+    }
+
+    const parsedData: TokenData = JSON.parse(tokendData);
+    const redisToken: string = parsedData.token;
+
+    if (token !== redisToken) {
+      return sendResponse(
+        res,
+        401,
+        true,
+        "Invalid token , check your token or request a new one.",
+      );
     }
 
     const key = `user:verified:${email}`;
