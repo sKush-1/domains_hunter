@@ -16,10 +16,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
     },
     name: {
       type: "VARCHAR(150)",
-    },
-    is_email_verified: {
-      type: "BOOLEAN",
-      default: false,
+      notNull: true,
     },
     created_at: {
       type: "TIMESTAMPTZ",

@@ -101,7 +101,6 @@ export async function verifyUserEmail(req: Request, res: Response) {
     await redis.set(key, JSON.stringify({ token }), "EX", 300);
 
     const result = {
-      message: "we have verified user onboard for registeration now.",
       email,
     };
 
@@ -109,7 +108,7 @@ export async function verifyUserEmail(req: Request, res: Response) {
       res,
       200,
       false,
-      "Sent email verification request.",
+      "we have verified user onboard for registeration now.",
       result,
     );
   } catch (error) {
