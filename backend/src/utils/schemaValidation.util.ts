@@ -24,9 +24,13 @@ export function validateDomainsRatingReq(data: any) {
 }
 
 export function validateRegisterWithEmail(data: any) {
-  const { email, password } = data;
-  if (email.length > 150) {
+  const { email, name, password } = data;
+  if (email && email.length > 150) {
     return { error: "Email must not exceed 150 characters", status: 400 };
+  }
+
+  if (name && name.length < 3) {
+    return { error: "Name must be atleast three characters", status: 400 };
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

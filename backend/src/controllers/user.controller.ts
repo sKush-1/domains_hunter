@@ -3,9 +3,11 @@ import { validateRegisterWithEmail } from "../utils/schemaValidation.util";
 import { sendResponse } from "../utils/sendresponse.util";
 import { error } from "console";
 import redis from "../config/database/redis";
+import { userEmailRegisterService } from "../services/user.service";
+import { user_email_registeration } from "../interfaces/users";
 
 export async function registerWithEmail(req: Request, res: Response) {
-  const { email, password } = req.body;
+  const { email, name, password }: user_email_registeration = req.body;
 
   const validationResult = validateRegisterWithEmail(req.body);
 
@@ -14,11 +16,12 @@ export async function registerWithEmail(req: Request, res: Response) {
   }
 
   const isEmailVerified = await redis.get(`user:verified:${email}`);
-  console.log(isEmailVerified);
 
   if (!isEmailVerified) {
     return sendResponse(res, 401, false, "Email is not verified yet.");
   }
 
-  return sendResponse(res, 200, false, "success", validationResult);
+  const registerUserID = await userEmailRegisterService(email, name, password);
+
+  return sendResponse(res, 200, false, "success", registerUserID);
 }

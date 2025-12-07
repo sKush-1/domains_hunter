@@ -6,7 +6,6 @@ import {
   checkDomainAvailability,
 } from "../services/domainSuggestion.service";
 import { sendResponse } from "../utils/sendresponse.util";
-import { Client } from "pg";
 import {
   validateDomainsRatingReq,
   validateSuggestionReq,
