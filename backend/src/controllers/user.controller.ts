@@ -27,7 +27,7 @@ export async function registerWithEmail(req: Request, res: Response) {
 
   const userAlreadyExists = await checkUserExists(email);
 
-  if (!userAlreadyExists) {
+  if (userAlreadyExists) {
     return sendResponse(res, 400, false, "user already exists.");
   }
 
@@ -43,8 +43,8 @@ export async function registerWithEmail(req: Request, res: Response) {
     user_id: registerUserID,
     name: name,
   };
-  const accessToken = await createUserAccessToken(accessTokenPayload);
-  const refreshToken = await createUserRefreshToken(accessTokenPayload);
+  const accessToken = createUserAccessToken(accessTokenPayload);
+  const refreshToken = createUserRefreshToken(accessTokenPayload);
 
   res
     .cookie("refreshToken", refreshToken, {
