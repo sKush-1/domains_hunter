@@ -39,3 +39,11 @@ export async function userEmailRegisterService(
     client.release();
   }
 }
+
+export async function checkUserExists(email: string) {
+  const client = await pool.connect();
+  const user = await client.query(`SELECT id from users where email = $1`, [
+    email,
+  ]);
+  return user.rows[0]?.id ?? null;
+}
